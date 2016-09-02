@@ -65,7 +65,6 @@ GLint uniforms[NUM_UNIFORMS];
 @property (assign, nonatomic) GLuint vertexBufferID;
 @property (assign, nonatomic) GLuint vertexTexCoordID;
 @property (assign, nonatomic) GLuint vertexTexCoordAttributeIndex;
-@property (assign, nonatomic, readwrite) BOOL isUsingMotion;
 
 @property (assign, nonatomic) CGFloat zoomScale;
 @property (assign, nonatomic) CGFloat previousPinchScale;

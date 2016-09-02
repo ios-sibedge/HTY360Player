@@ -12,6 +12,8 @@
 @interface HTY360PlayerVC : UIViewController
 
 @property (strong, nonatomic) NSURL *videoURL;
+@property (assign, nonatomic) BOOL autoPlay;
+@property (assign, nonatomic) BOOL loopVideo;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil url:(NSURL*)url;
 - (CVPixelBufferRef)retrievePixelBufferToDraw;

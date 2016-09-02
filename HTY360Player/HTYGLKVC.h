@@ -14,7 +14,7 @@
 @interface HTYGLKVC : GLKViewController <UIGestureRecognizerDelegate>
 
 @property (strong, nonatomic, readwrite) HTY360PlayerVC* videoPlayerController;
-@property (assign, nonatomic, readonly) BOOL isUsingMotion;
+@property (assign, nonatomic) BOOL isUsingMotion;
 
 - (void)startDeviceMotion;
 - (void)stopDeviceMotion;

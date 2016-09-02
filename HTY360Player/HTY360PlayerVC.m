@@ -62,6 +62,9 @@ static void *AVPlayerItemStatusContext = &AVPlayerItemStatusContext;
                                                  name:UIApplicationDidBecomeActiveNotification
                                                object:nil];
     
+    self.autoPlay = YES;
+    self.loopVideo = YES;
+    
     [self setupVideoPlaybackForURL:_videoURL];
     [self configureGLKView];
     [self configurePlayButton];
@@ -142,8 +145,7 @@ static void *AVPlayerItemStatusContext = &AVPlayerItemStatusContext;
         NSLog(@"Could not use AVAudioSessionCategoryPlayback", nil);
     }
     
-    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
-    
+    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];    
     
     if(![[NSFileManager defaultManager] fileExistsAtPath:[[asset URL] path]]) {
         //NSLog(@"file does not exist");
@@ -525,6 +527,10 @@ static void *AVPlayerItemStatusContext = &AVPlayerItemStatusContext;
                 [self initScrubberTimer];
                 [self enableScrubber];
                 [self enablePlayerButtons];
+                
+                if (self.autoPlay) {
+                    [self play];
+                }
                 break;
             }
             case AVPlayerStatusFailed: {
@@ -579,6 +585,10 @@ static void *AVPlayerItemStatusContext = &AVPlayerItemStatusContext;
     /* After the movie has played to its end time, seek back to time zero
      to play it again. */
     self.seekToZeroBeforePlay = YES;
+    
+    if ( self.loopVideo ) {
+        [self play];
+    }
 }
 
 #pragma mark - gyro button
