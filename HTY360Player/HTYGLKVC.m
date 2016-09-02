@@ -21,6 +21,9 @@
 #define SphereRadius 1.0
 #define SphereScale 300
 
+#define MAX_SCALE 5.0
+#define MIN_SCALE 0.5
+
 // For digital component video the color format YCbCr is used.
 // ITU-R BT.709, which is the standard for HDTV.
 // http://www.equasys.de/colorconversion.html
@@ -64,6 +67,10 @@ GLint uniforms[NUM_UNIFORMS];
 @property (assign, nonatomic) GLuint vertexTexCoordAttributeIndex;
 @property (assign, nonatomic, readwrite) BOOL isUsingMotion;
 
+@property (assign, nonatomic) CGFloat zoomScale;
+@property (assign, nonatomic) CGFloat previousPinchScale;
+@property (assign, nonatomic) CGFloat beginScale;
+
 - (void)setupGL;
 - (void)tearDownGL;
 - (void)buildProgram;
@@ -88,11 +95,29 @@ GLint uniforms[NUM_UNIFORMS];
     
     self.preferredFramesPerSecond = FramesPerSecond;
     self.overture = DEFAULT_OVERTURE;
+    self.zoomScale = [self scaleFromOverture:self.overture];
     
     [self addGesture];
     [self setupGL];
     [self startDeviceMotion];
 }
+
+- (CGFloat)scaleFromOverture:(CGFloat)overture {
+    CGFloat onePercent = (MAX_OVERTURE - MIN_OVERTURE) / 100.0;
+    CGFloat overturePercent = 1.0 - (overture - MIN_OVERTURE) / 100.0 / onePercent;
+    
+    CGFloat scale = (MAX_SCALE - MIN_SCALE) * overturePercent + MIN_SCALE;
+    return scale;
+}
+
+- (CGFloat)overtureFromScale:(CGFloat)scale {
+    CGFloat onePercent = (MAX_SCALE - MIN_SCALE) / 100.0;
+    CGFloat scalePercent = 1.0 - (scale - MIN_SCALE) / 100.0 / onePercent;
+    
+    CGFloat overture = (MAX_OVERTURE - MIN_OVERTURE) * scalePercent + MIN_OVERTURE;
+    return overture;
+}
+
 
 - (void)refreshTexture {
     CVReturn err;
@@ -479,6 +504,7 @@ int esGenSphere(int numSlices, float radius, float **vertices,
         [self.currentTouches removeObject:touch];
     }
 }
+
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
         [self.currentTouches removeObject:touch];
@@ -486,14 +512,24 @@ int esGenSphere(int numSlices, float radius, float **vertices,
 }
 
 - (void)handlePinchGesture:(UIPinchGestureRecognizer *)recognizer {
-    self.overture /= recognizer.scale;
-    
-    if (self.overture > MAX_OVERTURE) {
-        self.overture = MAX_OVERTURE;
+
+    if (recognizer.state == UIGestureRecognizerStateBegan ) {
+        self.beginScale = self.zoomScale;
     }
-    
-    if (self.overture < MIN_OVERTURE) {
-        self.overture = MIN_OVERTURE;
+    else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateChanged) {
+        
+        if (fabs(self.previousPinchScale - recognizer.scale) > 0.01) {
+            
+            self.previousPinchScale = recognizer.scale;
+            self.zoomScale = self.beginScale * recognizer.scale;
+            
+            if (self.zoomScale < MIN_SCALE) self.zoomScale = MIN_SCALE;
+            if (self.zoomScale > MAX_SCALE) self.zoomScale = MAX_SCALE;
+            
+            self.overture = [self overtureFromScale:self.zoomScale];
+            
+//            NSLog(@"overture %f, zoomScale %f", self.overture, self.zoomScale);
+        }
     }
 }
 
